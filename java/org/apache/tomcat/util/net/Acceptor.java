@@ -87,7 +87,7 @@ public class Acceptor<U> implements Runnable {
                 if (endpoint.isPaused()) {
                     continue;
                 }
-
+                //U 的类型是 NioChannel
                 U socket = null;
                 try {
                     // Accept the next incoming connection from the server

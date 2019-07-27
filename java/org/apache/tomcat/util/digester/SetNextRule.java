@@ -123,12 +123,13 @@ public class SetNextRule extends Rule {
      * @param name the local name if the parser is namespace aware, or just
      *   the element name otherwise
      */
+    //通过反射将child 对象设置到parent 对象中；methodName和paramType代表在父类需要执行方法的名称和类型。
     @Override
     public void end(String namespace, String name) throws Exception {
 
         // Identify the objects to be used
-        Object child = digester.peek(0);
-        Object parent = digester.peek(1);
+        Object child = digester.peek(0);//当前标签 对应的实例
+        Object parent = digester.peek(1);//父标签 对应的实例
         if (digester.log.isDebugEnabled()) {
             if (parent == null) {
                 digester.log.debug("[SetNextRule]{" + digester.match +

@@ -43,7 +43,9 @@ public class SetPropertiesRule extends Rule {
     @Override
     public void begin(String namespace, String theName, Attributes attributes)
             throws Exception {
-
+        //与之对应的是在ObjectCreateRule类的 begin(Attributes attributes)方法中会执行digester.push(instance);
+        // 由于这里面实际存储的对象的结构是栈，且每个pattern会先执行ObjectCreateRule，再执行SetPropertiesRule；
+        // 则这个函数得到的对象就是ObjectCreateRule类begin方法中实例化的对象。
         // Populate the corresponding properties of the top object
         Object top = digester.peek();
         if (digester.log.isDebugEnabled()) {
@@ -69,6 +71,13 @@ public class SetPropertiesRule extends Rule {
                         "} Setting property '" + name + "' to '" +
                         value + "'");
             }
+            //对属性进行检查；在之前Catalina类的createStartDigester()中设置了Object.class和attrs的对应关系，
+            // 如果被检查的属性在attrs中设置过则返回true，不再执行SetPropertiesRule类后面的两个函数。
+
+
+            //这里最重点的功能在IntrospectionUtils.setProperty(top, name, value)函数；
+            // 它的作用是将解析xml所获取到的属性值，设置到之前ObjectCreateRule实例化的对象中，
+            // 如果设置失败再进行digester.getRulesValidation()判断，判断是否打印属性值设置失败的日志。
             if (!digester.isFakeAttribute(top, name)
                     && !IntrospectionUtils.setProperty(top, name, value)
                     && digester.getRulesValidation()) {

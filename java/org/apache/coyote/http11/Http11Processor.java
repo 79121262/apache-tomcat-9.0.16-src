@@ -393,6 +393,7 @@ public class Http11Processor extends AbstractProcessor {
                 }
             }
 
+            //判断长链接数量
             int maxKeepAliveRequests = protocol.getMaxKeepAliveRequests();
             if (maxKeepAliveRequests == 1) {
                 keepAlive = false;

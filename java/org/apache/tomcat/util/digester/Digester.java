@@ -1150,7 +1150,7 @@ public class Digester extends DefaultHandler2 {
         }
 
         // Compute the current matching rule
-        StringBuilder sb = new StringBuilder(match);
+        StringBuilder sb = new StringBuilder(match); //累加server.xml 父节点数据
         if (match.length() > 0) {
             sb.append('/');
         }
@@ -1161,6 +1161,7 @@ public class Digester extends DefaultHandler2 {
         }
 
         // Fire "begin" events for all relevant rules
+        //匹配Rule
         List<Rule> rules = getRules().match(namespaceURI, match);
         matches.push(rules);
         if ((rules != null) && (rules.size() > 0)) {
@@ -1490,6 +1491,9 @@ public class Digester extends DefaultHandler2 {
      *
      * @param pattern Element matching pattern
      * @param rule Rule to be registered
+     *
+     *             pattern 存放节点的层级关系
+     *
      */
     public void addRule(String pattern, Rule rule) {
 
