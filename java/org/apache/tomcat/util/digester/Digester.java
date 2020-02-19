@@ -934,6 +934,8 @@ public class Digester extends DefaultHandler2 {
         // Fire "end" events for all relevant rules in reverse order
         if (rules != null) {
             for (int i = 0; i < rules.size(); i++) {
+                //倒序 调用,Rule 确保，ObjectCreateRule 的end方法最后执行。
+                // 目的 :解析完成将标签引用弹出栈.
                 int j = (rules.size() - i) - 1;
                 try {
                     Rule rule = rules.get(j);
@@ -951,6 +953,7 @@ public class Digester extends DefaultHandler2 {
             }
         }
 
+        //最后将 match 解析面包屑 回退一个层次
         // Recover the previous match expression
         int slash = match.lastIndexOf('/');
         if (slash >= 0) {
@@ -1148,12 +1151,12 @@ public class Digester extends DefaultHandler2 {
         if ((name == null) || (name.length() < 1)) {
             name = qName;
         }
-
         // Compute the current matching rule
-        StringBuilder sb = new StringBuilder(match); //累加server.xml 父节点数据
+        StringBuilder sb = new StringBuilder(match);
         if (match.length() > 0) {
             sb.append('/');
         }
+        //累加server.xml 父节点数据
         sb.append(name);
         match = sb.toString();
         if (debug) {
@@ -1492,7 +1495,7 @@ public class Digester extends DefaultHandler2 {
      * @param pattern Element matching pattern
      * @param rule Rule to be registered
      *
-     *             pattern 存放节点的层级关系
+     *  pattern 存放节点的层级关系
      *
      */
     public void addRule(String pattern, Rule rule) {

@@ -94,8 +94,11 @@ public class ObjectCreateRule extends Rule {
     public void begin(String namespace, String name, Attributes attributes)
             throws Exception {
 
+
+        //默认取 创建Rule 配置className
         // Identify the name of the class to instantiate
         String realClassName = className;
+        //如果创建Rule 配置的 attributeName ,不为空 那么取xml配置的 attributeName 属性的值
         if (attributeName != null) {
             String value = attributes.getValue(attributeName);
             if (value != null) {
@@ -111,6 +114,7 @@ public class ObjectCreateRule extends Rule {
             throw new NullPointerException(sm.getString("rule.noClassName", namespace, name));
         }
 
+        //用反射创建对象
         // Instantiate the new object and push it on the context stack
         Class<?> clazz = digester.getClassLoader().loadClass(realClassName);
         Object instance = clazz.getConstructor().newInstance();
@@ -129,7 +133,7 @@ public class ObjectCreateRule extends Rule {
      */
     @Override
     public void end(String namespace, String name) throws Exception {
-
+        //弹出, 标签的类的引用
         Object top = digester.pop();
         if (digester.log.isDebugEnabled()) {
             digester.log.debug("[ObjectCreateRule]{" + digester.match +

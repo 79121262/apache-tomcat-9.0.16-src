@@ -100,6 +100,7 @@ public class Connector extends LifecycleMBeanBase  {
         ProtocolHandler p = null;
         try {
             Class<?> clazz = Class.forName(protocolHandlerClassName);
+            //调用构造方法 将 Endpoint  例如 ： public Http11NioProtocol() { uper(new NioEndpoint()); }
             p = (ProtocolHandler) clazz.getConstructor().newInstance();
         } catch (Exception e) {
             log.error(sm.getString(
@@ -242,6 +243,8 @@ public class Connector extends LifecycleMBeanBase  {
 
 
     /**
+     * 协议处理器
+     *
      * Coyote protocol handler.
      */
     protected final ProtocolHandler protocolHandler;
@@ -945,6 +948,7 @@ public class Connector extends LifecycleMBeanBase  {
                     sm.getString("coyoteConnector.protocolHandlerInstantiationFailed"));
         }
 
+        //连接器和容器,数据流转换适配器
         // Initialize adapter
         adapter = new CoyoteAdapter(this);
         protocolHandler.setAdapter(adapter);

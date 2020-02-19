@@ -82,6 +82,7 @@ public class EngineRuleSet implements RuleSet {
                          new LifecycleListenerRule
                          ("org.apache.catalina.startup.EngineConfig",
                           "engineConfigClass"));
+        //将 Engine 实例（StandardEngine） 添加到上层（Service） , 调用 setContainer 方法
         digester.addSetNext(prefix + "Engine",
                             "setContainer",
                             "org.apache.catalina.Engine");

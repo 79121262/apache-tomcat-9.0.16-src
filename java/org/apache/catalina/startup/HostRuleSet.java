@@ -78,12 +78,12 @@ public class HostRuleSet implements RuleSet {
                                  "org.apache.catalina.core.StandardHost",
                                  "className");
         digester.addSetProperties(prefix + "Host");
-        digester.addRule(prefix + "Host",
-                         new CopyParentClassLoaderRule());
+        digester.addRule(prefix + "Host",new CopyParentClassLoaderRule());
         digester.addRule(prefix + "Host",
                          new LifecycleListenerRule
                          ("org.apache.catalina.startup.HostConfig",
                           "hostConfigClass"));
+        //调用 Engine 的addChild 添加 Host
         digester.addSetNext(prefix + "Host",
                             "addChild",
                             "org.apache.catalina.Container");
@@ -105,6 +105,7 @@ public class HostRuleSet implements RuleSet {
                                  null, // MUST be specified in the element
                                  "className");
         digester.addSetProperties(prefix + "Host/Listener");
+        //向Host 添加一个生命周期的监听器
         digester.addSetNext(prefix + "Host/Listener",
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");

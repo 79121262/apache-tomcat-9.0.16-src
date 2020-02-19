@@ -432,6 +432,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
 
         mapperListener.start();
 
+        //启动连接器 Connector
         // Start our defined Connectors second
         synchronized (connectorsLock) {
             for (Connector connector: connectors) {
@@ -514,10 +515,12 @@ public class StandardService extends LifecycleMBeanBase implements Service {
 
         super.initInternal();
 
+        //初始化容器 这里只是调用了 StandardEngine 没有向下传播？,只有engine 有init, 用于开启容器的一个线程池
         if (engine != null) {
             engine.init();
         }
 
+        //初始化处理 任务的线程池
         // Initialize any Executors
         for (Executor executor : findExecutors()) {
             if (executor instanceof JmxEnabled) {
@@ -529,6 +532,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
         // Initialize mapper listener
         mapperListener.init();
 
+        //初始化 连机器  Connector。
         // Initialize our defined Connectors
         synchronized (connectorsLock) {
             for (Connector connector : connectors) {

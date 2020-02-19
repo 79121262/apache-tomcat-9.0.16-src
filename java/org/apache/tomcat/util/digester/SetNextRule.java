@@ -128,8 +128,10 @@ public class SetNextRule extends Rule {
     public void end(String namespace, String name) throws Exception {
 
         // Identify the objects to be used
-        Object child = digester.peek(0);//当前标签 对应的实例
-        Object parent = digester.peek(1);//父标签 对应的实例
+        //获取当前标签 对应的实例
+        Object child = digester.peek(0);
+        //获取父标签 对应的实例
+        Object parent = digester.peek(1);
         if (digester.log.isDebugEnabled()) {
             if (parent == null) {
                 digester.log.debug("[SetNextRule]{" + digester.match +

@@ -266,7 +266,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                     socketProperties.getBufferPool());
 
             // Create worker collection
-            //创建工作线程
+            //创建工作线程,  如果配置的线程池不为空, 那么创建默认的线程池
             if ( getExecutor() == null ) {
                 createExecutor();
             }
@@ -274,7 +274,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
             initializeConnectionLatch();
 
             // Start poller threads
-            //创建检查链接 Seletor 线程
+            //创建检查链接 Seletor 线程 , 数量为cpu的核数,最少两个
             pollers = new Poller[getPollerThreadCount()];
             for (int i=0; i<pollers.length; i++) {
                 pollers[i] = new Poller();
@@ -284,7 +284,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 pollerThread.start();
             }
 
-            //创建接收链接线程
+            //创建接收链接线程,  一个线程接受请求
             startAcceptorThreads();
         }
     }

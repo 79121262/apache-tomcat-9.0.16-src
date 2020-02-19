@@ -160,11 +160,9 @@ public abstract class LifecycleMBeanBase extends LifecycleBase
 
             Registry.getRegistry(null, null).registerComponent(obj, on, null);
         } catch (MalformedObjectNameException e) {
-            log.warn(sm.getString("lifecycleMBeanBase.registerFail", obj, name),
-                    e);
+            log.warn(sm.getString("lifecycleMBeanBase.registerFail", obj, name),e);
         } catch (Exception e) {
-            log.warn(sm.getString("lifecycleMBeanBase.registerFail", obj, name),
-                    e);
+            log.warn(sm.getString("lifecycleMBeanBase.registerFail", obj, name),e);
         }
 
         return on;

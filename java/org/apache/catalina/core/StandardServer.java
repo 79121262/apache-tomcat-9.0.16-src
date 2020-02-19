@@ -1004,6 +1004,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
 
         super.initInternal();
 
+        //初始化公共的任务  执行器
         // Initialize utility executor
         reconfigureUtilityExecutor(getUtilityThreadsInternal(utilityThreads));
         register(utilityExecutor, "type=UtilityExecutor");
@@ -1050,6 +1051,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
                 cl = cl.getParent();
             }
         }
+        //初始化services
         // Initialize our defined Services
         for (int i = 0; i < services.length; i++) {
             services[i].init();

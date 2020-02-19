@@ -461,6 +461,7 @@ public final class Bootstrap {
                 // Don't set daemon until init() has completed
                 Bootstrap bootstrap = new Bootstrap();
                 try {
+                    //初始化引导类
                     bootstrap.init();
                 } catch (Throwable t) {
                     handleThrowable(t);

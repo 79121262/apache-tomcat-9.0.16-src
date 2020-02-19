@@ -854,6 +854,7 @@ public abstract class AbstractEndpoint<S,U> {
     }
 
 
+    //最大线程数量默认为200,核心线程数量为10,无界队列, 活跃时间为60毫秒
     public void createExecutor() {
         internalExecutor = true;
         TaskQueue taskqueue = new TaskQueue();

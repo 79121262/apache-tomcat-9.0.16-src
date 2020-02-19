@@ -61,8 +61,10 @@ public class ConnectorCreateRule extends Rule {
         if ( attributes.getValue("executor")!=null ) {
             ex = svc.getExecutor(attributes.getValue("executor"));
         }
+        //创建 Connector 实例
         Connector con = new Connector(attributes.getValue("protocol"));
         if (ex != null) {
+            //将处理任务的线程池放入
             setExecutor(con, ex);
         }
         String sslImplementationName = attributes.getValue("sslImplementationName");

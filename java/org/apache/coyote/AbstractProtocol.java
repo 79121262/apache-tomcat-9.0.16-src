@@ -565,6 +565,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
             logPortOffset();
         }
 
+        //启动 ,接受请求工具
         endpoint.start();
         monitorFuture = getUtilityExecutor().scheduleWithFixedDelay(
                 new Runnable() {
