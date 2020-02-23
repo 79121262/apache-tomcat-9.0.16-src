@@ -1096,6 +1096,7 @@ public abstract class AbstractEndpoint<S,U> {
 
     public final void init() throws Exception {
         if (bindOnInit) {
+            //初始化 ServerSocketChannel 并绑定端口
             bindWithCleanup();
             bindState = BindState.BOUND_ON_INIT;
         }
@@ -1177,6 +1178,7 @@ public abstract class AbstractEndpoint<S,U> {
 
 
     protected void startAcceptorThreads() {
+        //获取 接受连接线程数量
         int count = getAcceptorThreadCount();
         acceptors = new ArrayList<>(count);
 
@@ -1255,6 +1257,10 @@ public abstract class AbstractEndpoint<S,U> {
         connectionLimitLatch = null;
     }
 
+    /**
+     * 判断连接数是否超过限制，如果超过那么阻塞， 默认数量为 10000
+     * @throws InterruptedException
+     */
     protected void countUpOrAwaitConnection() throws InterruptedException {
         if (maxConnections==-1) return;
         LimitLatch latch = connectionLimitLatch;

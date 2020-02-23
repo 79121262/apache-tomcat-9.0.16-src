@@ -55,6 +55,8 @@ public class Acceptor<U> implements Runnable {
     }
 
 
+    //接受连接请求,将请求的 java原生的SocketChannel 封装成 NioChannel，将NioChannel封装成 PollerEvent，
+    //放入到Poller 线程中的的 PollerEvent 事件队列，然后唤醒 Poller 线程
     @Override
     public void run() {
 
@@ -62,7 +64,7 @@ public class Acceptor<U> implements Runnable {
 
         // Loop until we receive a shutdown command
         while (endpoint.isRunning()) {
-
+            //endpoint 如果暂停了，那么自旋等待。
             // Loop if endpoint is paused
             while (endpoint.isPaused() && endpoint.isRunning()) {
                 state = AcceptorState.PAUSED;
@@ -72,7 +74,7 @@ public class Acceptor<U> implements Runnable {
                     // Ignore
                 }
             }
-
+            //endpoint 如果没有在运行中了 那么退出循环
             if (!endpoint.isRunning()) {
                 break;
             }
@@ -91,8 +93,7 @@ public class Acceptor<U> implements Runnable {
                 U socket = null;
                 try {
                     // Accept the next incoming connection from the server
-                    // socket
-                    //接收链接
+                    // socket 通信通道
                     socket = endpoint.serverSocketAccept();
                 } catch (Exception ioe) {
                     // We didn't get a socket
