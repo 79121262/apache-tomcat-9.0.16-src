@@ -44,8 +44,7 @@ public class NioSelectorPool {
     protected boolean enabled = true;
     protected AtomicInteger active = new AtomicInteger(0);
     protected AtomicInteger spare = new AtomicInteger(0);
-    protected ConcurrentLinkedQueue<Selector> selectors =
-            new ConcurrentLinkedQueue<>();
+    protected ConcurrentLinkedQueue<Selector> selectors = new ConcurrentLinkedQueue<>();
 
     protected Selector getSharedSelector() throws IOException {
         if (SHARED && SHARED_SELECTOR == null) {
@@ -68,6 +67,7 @@ public class NioSelectorPool {
         }
         Selector s = null;
         try {
+            //poll():当没有获得数据时返回为null，如果有数据时则移除移除表头数据，并将表头数据进行返回。
             s = selectors.size()>0?selectors.poll():null;
             if (s == null) {
                 s = Selector.open();

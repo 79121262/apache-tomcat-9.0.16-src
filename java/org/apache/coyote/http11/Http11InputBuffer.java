@@ -171,7 +171,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         parsingRequestLineQPos = -1;
         headerParsePos = HeaderParsePosition.HEADER_START;
         swallowInput = true;
-
+        //在读http body时用到的
         inputStreamInputBuffer = new SocketInputBuffer();
     }
 
@@ -387,6 +387,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                         + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
+        //就开始读method
         if (parsingRequestLinePhase == 2) {
             //
             // Reading the method name
@@ -420,6 +421,10 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             // Spec says single SP but also be tolerant of multiple SP and/or HT
             boolean space = true;
             while (space) {
+                /**
+                 *position = limit 即已经读完了，需要执行fill重新填充，参数是false，
+                 *是非阻塞读，那什么时候阻塞读呢，是我们在调用getInputStream()时，就是阻塞的
+                 */
                 // Read new bytes if needed
                 if (byteBuffer.position() >= byteBuffer.limit()) {
                     if (!fill(false)) // request line parsing
@@ -434,6 +439,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 4;
         }
+
         if (parsingRequestLinePhase == 4) {
             // Mark the current buffer position
 
@@ -485,6 +491,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             }
             parsingRequestLinePhase = 5;
         }
+        //计算出了请求行最后一部分协议版本的偏移
         if (parsingRequestLinePhase == 5) {
             // Spec says single SP but also be tolerant of multiple and/or HT
             boolean space = true;
@@ -692,6 +699,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         int bufLength = headerBufferSize +
                 wrapper.getSocketBufferHandler().getReadBuffer().capacity();
         if (byteBuffer == null || byteBuffer.capacity() < bufLength) {
+            //后面的读请求头，header，body 时都会用到
             byteBuffer = ByteBuffer.allocate(bufLength);
             byteBuffer.position(0).limit(0);
         }

@@ -152,6 +152,7 @@ public class Http11Processor extends AbstractProcessor {
         httpParser = new HttpParser(protocol.getRelaxedPathChars(),
                 protocol.getRelaxedQueryChars());
 
+        //最大 HttpHeader为8k
         inputBuffer = new Http11InputBuffer(request, protocol.getMaxHttpHeaderSize(),
                 protocol.getRejectIllegalHeaderName(), httpParser);
         request.setInputBuffer(inputBuffer);
@@ -159,6 +160,7 @@ public class Http11Processor extends AbstractProcessor {
         outputBuffer = new Http11OutputBuffer(response, protocol.getMaxHttpHeaderSize());
         response.setOutputBuffer(outputBuffer);
 
+        // tomcat 通过filter来 读body，IdentityInputFilter 读非Chunk body
         // Create and add the identity filters.
         inputBuffer.addFilter(new IdentityInputFilter(protocol.getMaxSwallowSize()));
         outputBuffer.addFilter(new IdentityOutputFilter());
@@ -267,6 +269,12 @@ public class Http11Processor extends AbstractProcessor {
         }
     }
 
+    /**
+     * http 协议内容分为三部分即：request line + request header + request body 组成
+     *
+     * https://www.jianshu.com/p/62b0318a9b24  关于协议的解析文章
+     *
+     */
 
     @Override
     public SocketState service(SocketWrapperBase<?> socketWrapper)
@@ -276,7 +284,9 @@ public class Http11Processor extends AbstractProcessor {
 
         // Setting up the I/O
         setSocketWrapper(socketWrapper);
+        //初始化读缓冲区,inputBuffer即Http11InputBuffer
         inputBuffer.init(socketWrapper);
+        //初始化写缓冲区
         outputBuffer.init(socketWrapper);
 
         // Flags
@@ -291,11 +301,13 @@ public class Http11Processor extends AbstractProcessor {
 
             // Parsing the request header
             try {
+                //解析请求头
                 if (!inputBuffer.parseRequestLine(keptAlive, protocol.getConnectionTimeout(),
                         protocol.getKeepAliveTimeout())) {
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
                         return SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
+                        //如果没有读到一个完整的请求头，则需要等待继续读，即需要重新注册读事件
                         break;
                     }
                 }
@@ -308,6 +320,7 @@ public class Http11Processor extends AbstractProcessor {
                     keptAlive = true;
                     // Set this every time in case limit has been changed via JMX
                     request.getMimeHeaders().setLimit(protocol.getMaxHeaderCount());
+                    //header 的解析
                     if (!inputBuffer.parseHeaders()) {
                         // We've read part of the request, don't recycle it
                         // instead associate it with the socket
@@ -381,6 +394,7 @@ public class Http11Processor extends AbstractProcessor {
                 // Setting up filters, and parse some request headers
                 rp.setStage(org.apache.coyote.Constants.STAGE_PREPARE);
                 try {
+                    // 指定request body的读取filter,并没有真正读取
                     prepareRequest();
                 } catch (Throwable t) {
                     ExceptionUtils.handleThrowable(t);
@@ -557,6 +571,11 @@ public class Http11Processor extends AbstractProcessor {
 
     /**
      * After reading the request headers, we have to setup the request filters.
+     *
+     * body的inputFilter 知道了，那在具体在什么时候用这个activeFilter 去做解析呢，
+     * 答案是我们在第一次调用getParameter(String name ) 或者和parameter 相关的方法时，或者调用getInputStream()方法时会去解析body、
+     * 而不时tomcat先解析好，等我们去具体获取参数时直接给我们的
+     *
      */
     private void prepareRequest() {
 
@@ -770,17 +789,20 @@ public class Http11Processor extends AbstractProcessor {
         // Input filter setup
         InputFilter[] inputFilters = inputBuffer.getFilters();
 
-        // Parse transfer-encoding header
+        // Parse transfer-encoding headerbyte[] formData = null；
         if (http11) {
+            //body 的编码
             MessageBytes transferEncodingValueMB = headers.getValue("transfer-encoding");
             if (transferEncodingValueMB != null) {
                 String transferEncodingValue = transferEncodingValueMB.toString();
                 // Parse the comma separated list. "identity" codings are ignored
                 int startPos = 0;
+                //transfer-encoding 可以指定多种编码方式，类似这样的transfer-encoding:aa,bb
                 int commaPos = transferEncodingValue.indexOf(',');
                 String encodingName = null;
                 while (commaPos != -1) {
                     encodingName = transferEncodingValue.substring(startPos, commaPos);
+                    //根据encoding 选择对应的inputFilter
                     addInputFilter(inputFilters, encodingName);
                     startPos = commaPos + 1;
                     commaPos = transferEncodingValue.indexOf(',', startPos);
