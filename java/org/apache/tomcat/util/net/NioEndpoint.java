@@ -207,6 +207,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
      */
     @Override
     public void bind() throws Exception {
+        //初始化socket 绑定地址，和监听端口
         initServerSocket();
 
         // Initialize thread count defaults for acceptor, poller
@@ -228,12 +229,29 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
 
     // Separated out to make it easier for folks that extend NioEndpoint to
     // implement custom [server]sockets
+    //https://www.cnblogs.com/dennyzhangdd/p/6734933.html  openjdk 目录结构
+    //openjdk 8 源码 http://jdk.java.net/java-se-ri/8-MR3
+    //http://androidxref.com/ 源码搜索网站，可以找到对应的类名，但是路径不准
+    //openjdk/jdk/src  , jdk 和平台相关的native方法,为啥linux目录没有本地代码呢？？
+    //因为OpenJDK里，Java标准库和部分工具的源码repo（jdk目录）里， BSD和Linux的平台相关源码都是在solaris目录里的。
+    //原本Sun JDK的源码里平台相关的目录就是从solaris和windows这两个目录开始的，
+    //后来Unix系的平台相关代码全都放在solaris目录下了，共用大部分代码。
+    //OpenJDK里的HotSpot VM的目录结构（hotspot目录）跟jdk目录的就不太一样，请区分开来讨论。
+
+    //寻找本地方法文件技巧，1 找到 native对应的文件夹 一般和idea内的 路径一样。
+
     protected void initServerSocket() throws Exception {
         if (!getUseInheritedChannel()) {
+            //获取 SelectorProvider
+            //1 根据启动参数-Djava.nio.channels.spi.SelectorProvider=class
+            //2 或META-INF/services 中的配置,
+            //3 操作系统版本
+            //获取ServerSocketChannel 。
             serverSock = ServerSocketChannel.open();
             socketProperties.setProperties(serverSock.socket());
             InetSocketAddress addr = new InetSocketAddress(getAddress(), getPortWithOffset());
-            serverSock.socket().bind(addr,getAcceptCount());//socket 等待接收链接数量为100
+            //socket 等待接收链接数量为100 对应linux bind 和 listen 函数
+            serverSock.socket().bind(addr,getAcceptCount());
         } else {
             // Retrieve the channel provided by the OS
             Channel ic = System.inheritedChannel();
@@ -244,6 +262,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 throw new IllegalArgumentException(sm.getString("endpoint.init.bind.inherited"));
             }
         }
+        //调用 linux fcntl 函数 设置为,设置为阻塞的方式
         serverSock.configureBlocking(true); //mimic APR behavior
     }
 
@@ -385,6 +404,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
     protected boolean setSocketOptions(SocketChannel socket) {
         // Process the connection
         try {
+            //将为客户端分配的文件描述副 设置为非阻塞的
             //disable blocking, APR style, we are gonna be polling it
             socket.configureBlocking(false);
             Socket sock = socket.socket();
@@ -517,6 +537,9 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
         public void run() {
             if (interestOps == OP_REGISTER) {
                 try {
+                    //https://segmentfault.com/a/1190000017798684?utm_source=tag-newest  这篇文章讲了，java nio 的实现。
+                    //我们会发现,调用register方法并没有涉及到EpollArrayWrapper中的native方法epollCtl的调用,
+                    // 这是因为他们将这个方法的调用推迟到Select方法中去了.好处是，减少一些系统调用
                     socket.getIOChannel().register(
                             socket.getPoller().getSelector(), SelectionKey.OP_READ, socketWrapper);
                 } catch (Exception x) {
@@ -797,10 +820,12 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 if ( close ) {
                     cancelledKey(sk);
                 } else if ( sk.isValid() && attachment != null ) {
-                    if (sk.isReadable() || sk.isWritable() ) { //此处监听 可读写，链接是在serverSock.accept();用的阻塞方法
+                    //此处监听 可读写，链接是在serverSock.accept();用的阻塞方法
+                    if (sk.isReadable() || sk.isWritable() ) {
                         if ( attachment.getSendfileData() != null ) {
                             processSendfile(sk,attachment, false);
                         } else {
+                            //取消key在Poller.selector中的注册,但是系统调用延时到 select()函数之前
                             unreg(sk, attachment, sk.readyOps());
                             boolean closeSocket = false;
                             // Read goes before write
@@ -1127,6 +1152,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
 
         @Override
         public int read(boolean block, ByteBuffer to) throws IOException {
+            //先从tomcat buffer 缓冲区读，如果buffer缓冲区还有未读的buffer，则不需要到OS底层读缓冲区读
             int nRead = populateReadBuffer(to);
             if (nRead > 0) {
                 return nRead;
@@ -1143,12 +1169,14 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
             int limit = socketBufferHandler.getReadBuffer().capacity();
             if (to.remaining() >= limit) {
                 to.limit(to.position() + limit);
+                //直接从os 底层读到 to buffer,避免一次copy
                 nRead = fillReadBuffer(block, to);
                 if (log.isDebugEnabled()) {
                     log.debug("Socket: [" + this + "], Read direct from socket: [" + nRead + "]");
                 }
                 updateLastRead();
             } else {
+                //先读到tomcat socketBufferHandler的read buffer
                 // Fill the read buffer as best we can.
                 nRead = fillReadBuffer(block);
                 if (log.isDebugEnabled()) {
@@ -1159,6 +1187,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 // Fill as much of the remaining byte array as possible with the
                 // data that was just read
                 if (nRead > 0) {
+                    //把SocketWrapperBase  readBuffer 的内容copy 到出参
                     nRead = populateReadBuffer(to);
                 }
             }
@@ -1187,16 +1216,17 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
         private int fillReadBuffer(boolean block, ByteBuffer to) throws IOException {
             int nRead;
             NioChannel channel = getSocket();
+            //非阻塞读取
             if (block) {
                 Selector selector = null;
                 try {
+                    //从池中获取一个 未被使用过的selector
                     selector = pool.get();
                 } catch (IOException x) {
                     // Ignore
                 }
                 try {
-                    NioEndpoint.NioSocketWrapper att = (NioEndpoint.NioSocketWrapper) channel
-                            .getAttachment();
+                    NioEndpoint.NioSocketWrapper att = (NioEndpoint.NioSocketWrapper) channel.getAttachment();
                     if (att == null) {
                         throw new IOException(sm.getString("endpoint.nio.keyMustBeCancelled"));
                     }
@@ -1207,6 +1237,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                     }
                 }
             } else {
+                //直接走系统调用 read 函数
                 nRead = channel.read(to);
                 if (nRead == -1) {
                     throw new EOFException();

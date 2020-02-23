@@ -981,6 +981,7 @@ public class Connector extends LifecycleMBeanBase  {
         }
 
         try {
+            //初始化,和绑定端口
             protocolHandler.init();
         } catch (Exception e) {
             throw new LifecycleException(
