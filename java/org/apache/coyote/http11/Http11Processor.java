@@ -146,6 +146,7 @@ public class Http11Processor extends AbstractProcessor {
 
 
     public Http11Processor(AbstractHttp11Protocol<?> protocol, Adapter adapter) {
+        //创建org.apache.coyote.Response 和 org.apache.coyote.Request
         super(adapter);
         this.protocol = protocol;
 
@@ -157,7 +158,9 @@ public class Http11Processor extends AbstractProcessor {
                 protocol.getRejectIllegalHeaderName(), httpParser);
         request.setInputBuffer(inputBuffer);
 
+        //http 响应返回值的 buffer
         outputBuffer = new Http11OutputBuffer(response, protocol.getMaxHttpHeaderSize());
+        //在org.apache.coyote.response中放入outputBuffer
         response.setOutputBuffer(outputBuffer);
 
         // tomcat 通过filter来 读body，IdentityInputFilter 读非Chunk body

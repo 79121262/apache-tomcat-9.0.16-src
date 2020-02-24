@@ -110,6 +110,9 @@ public class OutputBuffer extends Writer {
 
     /**
      * Associated Coyote response.
+     *
+     * CoyoteAdapter.service() 调用 connector.createResponse() 创建 servletHttpResponse 对象时候
+     * 将  org.apache.coyote.Response 一同设置进来了
      */
     private Response coyoteResponse;
 
@@ -128,6 +131,7 @@ public class OutputBuffer extends Writer {
      * @param size Buffer size to use
      */
     public OutputBuffer(int size) {
+        //size 默认为8k
         bb = ByteBuffer.allocate(size);
         clear(bb);
         cb = CharBuffer.allocate(size);
@@ -513,9 +517,11 @@ public class OutputBuffer extends Writer {
         int sOff = off;
         int sEnd = off + len;
         while (sOff < sEnd) {
+            //cb是CharBuffer，把字符串s写入到charBuffer中。
             int n = transfer(s, sOff, sEnd - sOff, cb);
             sOff += n;
             if (isFull(cb)) {
+                //写满了，刷新charBuffer，把char buffer 写到byte buffer
                 flushCharBuffer();
             }
         }

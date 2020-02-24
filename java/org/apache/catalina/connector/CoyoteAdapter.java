@@ -304,9 +304,10 @@ public class CoyoteAdapter implements Adapter {
         Response response = (Response) res.getNote(ADAPTER_NOTES);
 
         if (request == null) {
-            // Create objects
+            // Create objects  创建http servlet request 的对象
             request = connector.createRequest();
             request.setCoyoteRequest(req);
+            //根据 创建http servlet response 的对象
             response = connector.createResponse();
             response.setCoyoteResponse(res);
 

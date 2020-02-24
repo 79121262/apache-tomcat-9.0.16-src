@@ -107,6 +107,7 @@ public class Response implements HttpServletResponse {
 
 
     public Response(int outputBufferSize) {
+        //创建outputBuffer
         outputBuffer = new OutputBuffer(outputBufferSize);
     }
 
@@ -146,6 +147,8 @@ public class Response implements HttpServletResponse {
 
     /**
      * The associated output buffer.
+     *
+     * Connector.createResponse 时候创建
      */
     protected final OutputBuffer outputBuffer;
 
@@ -538,6 +541,11 @@ public class Response implements HttpServletResponse {
      * @exception IllegalStateException if <code>getWriter</code> has
      *  already been called for this response
      * @exception IOException if an input/output error occurs
+     *
+     *
+     * servlet 的 getOutputStream 开启 tomcat 写。
+     *
+     * CoyoteWriter 和 CoyoteOutputStream 的数据都是写入到OutputBuffer，通过outputbuffer写出去。
      */
     @Override
     public ServletOutputStream getOutputStream()
@@ -572,6 +580,8 @@ public class Response implements HttpServletResponse {
      * @exception IllegalStateException if <code>getOutputStream</code> has
      *  already been called for this response
      * @exception IOException if an input/output error occurs
+     * servlet 中调用 getWriter ，开始写响应数据
+     * 创建CoyoteWriter
      */
     @Override
     public PrintWriter getWriter()

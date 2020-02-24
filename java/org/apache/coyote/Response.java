@@ -85,6 +85,8 @@ public final class Response {
 
     /**
      * Associated output buffer.
+     * 在创建http11Processor的时候创建
+     *
      */
     OutputBuffer outputBuffer;
 
@@ -596,6 +598,7 @@ public final class Response {
      */
     public void doWrite(ByteBuffer chunk) throws IOException {
         int len = chunk.remaining();
+        //举例：调用Http11OutputBuffer
         outputBuffer.doWrite(chunk);
         contentWritten += len - chunk.remaining();
     }

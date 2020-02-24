@@ -180,6 +180,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             // Send the connector a request for commit. The connector should
             // then validate the headers, send them (using sendHeaders) and
             // set the filters accordingly.
+            // 准备响应头，写到Http11OutputBuffer的headerBuffer
             response.action(ActionCode.COMMIT, null);
         }
 

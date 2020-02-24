@@ -46,6 +46,9 @@ import org.apache.tomcat.util.res.StringManager;
 
 
 /**
+ *
+ * 负责创建 org.apache.catalina.connector.Request   org.apache.catalina.connector.Response
+ *
  * Implementation of a Coyote connector.
  *
  * @author Craig R. McClanahan
@@ -948,7 +951,7 @@ public class Connector extends LifecycleMBeanBase  {
                     sm.getString("coyoteConnector.protocolHandlerInstantiationFailed"));
         }
 
-        //连接器和容器,数据流转换适配器
+        //连接器和容器,数据流转换适配器, 一个Connector 中只有一个实例。
         // Initialize adapter
         adapter = new CoyoteAdapter(this);
         protocolHandler.setAdapter(adapter);

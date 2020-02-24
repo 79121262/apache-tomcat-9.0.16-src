@@ -40,6 +40,9 @@ import org.apache.tomcat.util.res.StringManager;
 /**
  * Provides functionality and attributes common to all supported protocols
  * (currently HTTP and AJP).
+ *
+ * 构造方法：负责创建  org.apache.coyote.Response  和 org.apache.coyote.Request
+ *
  */
 public abstract class AbstractProcessor extends AbstractProcessorLight implements ActionHook {
 
