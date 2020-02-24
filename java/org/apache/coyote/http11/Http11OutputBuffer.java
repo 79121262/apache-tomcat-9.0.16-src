@@ -304,6 +304,8 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             // Sending the response header buffer
             headerBuffer.flip();
             try {
+                //通过socket开始写，写body也是通过这个方法写
+                //默认是阻塞写，如果是aio，则是异步写
                 socketWrapper.write(isBlocking(), headerBuffer);
             } finally {
                 headerBuffer.position(0).limit(headerBuffer.capacity());

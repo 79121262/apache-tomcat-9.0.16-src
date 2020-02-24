@@ -330,6 +330,7 @@ public class OutputBuffer extends Writer {
         if (buf.remaining() > 0) {
             // real write to the adapter
             try {
+                //调用交个顶层的coyote的Response处理
                 coyoteResponse.doWrite(buf);
             } catch (CloseNowException e) {
                 // Catch this sub-class as it requires specific handling.

@@ -498,9 +498,11 @@ public abstract class SocketWrapperBase<E> {
      */
     protected void writeBlocking(ByteBuffer from) throws IOException {
         if (socketBufferHandler.isWriteBufferEmpty()) {
+            //header部分数据时，socket的write buffer是空的，是直接写
             // Socket write buffer is empty. Write the provided buffer directly
             // to the network.
             // TODO Shouldn't smaller writes be buffered anyway?
+
             writeBlockingDirect(from);
         } else {
             // Socket write buffer has some data.
@@ -509,6 +511,7 @@ public abstract class SocketWrapperBase<E> {
             transfer(from, socketBufferHandler.getWriteBuffer());
             // If the buffer is now full, write it to the network and then write
             // the remaining data directly to the network.
+            //如果应用层socket 的writeBuffer写满了，则把数据写到os层
             if (!socketBufferHandler.isWriteBufferWritable()) {
                 doWrite(true);
                 writeBlockingDirect(from);
@@ -523,6 +526,10 @@ public abstract class SocketWrapperBase<E> {
      * @param from The ByteBuffer containing the data to be written
      *
      * @throws IOException If an IO error occurs during the write
+     *
+     * 这里并不一定直接发 os，还会检查发送的数据大小 和 应用的socket write buffer大小比较，
+     * 如果小于还是先写到socket write buffer,这样减少系统调用，保证一次写系统调用尽量写足够多的数据，
+     * 如果大于则先把from的write buffer的大小的数据写到os层，剩余的写到write buffer
      */
     protected void writeBlockingDirect(ByteBuffer from) throws IOException {
         // The socket write buffer capacity is socket.appWriteBufSize

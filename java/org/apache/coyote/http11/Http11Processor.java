@@ -81,6 +81,7 @@ public class Http11Processor extends AbstractProcessor {
 
     /**
      * Output.
+     * 初始化 方法中创建
      */
     private final Http11OutputBuffer outputBuffer;
 
@@ -927,6 +928,7 @@ public class Http11Processor extends AbstractProcessor {
             contentDelimitation = true;
             headers.addValue(Constants.TRANSFERENCODING).setString(Constants.CHUNKED);
         } else if (contentLength != -1) {
+            //如果指定了content-length,指定写数据的filter为IDENTITY_FILTER
             headers.setValue("Content-Length").setLong(contentLength);
             outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
             contentDelimitation = true;
@@ -935,6 +937,7 @@ public class Http11Processor extends AbstractProcessor {
             // HTTP 1.1 then we chunk unless we have a Connection: close header
             connectionClosePresent = isConnectionClose(headers);
             if (http11 && entityBody && !connectionClosePresent) {
+                //如果是1.1,而且没有主动close，则用chunk格式发送body，对应的fiter为chunk filter
                 outputBuffer.addActiveFilter(outputFilters[Constants.CHUNKED_FILTER]);
                 contentDelimitation = true;
                 headers.addValue(Constants.TRANSFERENCODING).setString(Constants.CHUNKED);
@@ -943,6 +946,7 @@ public class Http11Processor extends AbstractProcessor {
             }
         }
 
+        //如果需要压缩，则增加压缩的output filter
         if (useCompression) {
             outputBuffer.addActiveFilter(outputFilters[Constants.GZIP_FILTER]);
         }
@@ -994,12 +998,14 @@ public class Http11Processor extends AbstractProcessor {
 
         // Build the response header
         try {
+            //生成响应行的内容
             outputBuffer.sendStatus();
 
             int size = headers.size();
             for (int i = 0; i < size; i++) {
                 outputBuffer.sendHeader(headers.getName(i), headers.getValue(i));
             }
+            //生成响应头的结束标志：换行和回车符
             outputBuffer.endHeaders();
         } catch (Throwable t) {
             ExceptionUtils.handleThrowable(t);
@@ -1008,7 +1014,7 @@ public class Http11Processor extends AbstractProcessor {
             outputBuffer.resetHeaderBuffer();
             throw t;
         }
-
+        //把headerBuffer的数据copy到socket的writerBuffer，最终flush的时候发送到网络上
         outputBuffer.commit();
     }
 

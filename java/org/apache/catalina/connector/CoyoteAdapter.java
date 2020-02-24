@@ -307,7 +307,9 @@ public class CoyoteAdapter implements Adapter {
             // Create objects  创建http servlet request 的对象
             request = connector.createRequest();
             request.setCoyoteRequest(req);
-            //根据 创建http servlet response 的对象
+            //1根据 org.apache.coyote.Response
+            //2创建 org.apache.catalina.connector.Response
+            // http servlet response 的对象
             response = connector.createResponse();
             response.setCoyoteResponse(res);
 
