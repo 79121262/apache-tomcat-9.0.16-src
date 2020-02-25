@@ -853,6 +853,10 @@ public class Http11Processor extends AbstractProcessor {
     /**
      * When committing the response, we have to validate the set of headers, as
      * well as setup the response filters.
+     *
+     *
+     *  通过应用层,write写数据触发
+     *  org.apache.catalina.connector.Response.getWriter().write()
      */
     @Override
     protected final void prepareResponse() throws IOException {

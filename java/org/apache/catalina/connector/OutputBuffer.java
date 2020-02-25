@@ -223,10 +223,11 @@ public class OutputBuffer extends Writer {
 
         // If there are chars, flush all of them to the byte buffer now as bytes are used to
         // calculate the content-length (if everything fits into the byte buffer, of course).
+        //如果没有主动调用(flush) 方法，这里会刷新，
         if (cb.remaining() > 0) {
             flushCharBuffer();
         }
-
+        //如果没有发送响应头，而且没有设置content-length，那么这里会设置content-length
         if ((!coyoteResponse.isCommitted()) && (coyoteResponse.getContentLengthLong() == -1)
                 && !coyoteResponse.getRequest().method().equals("HEAD")) {
             // If this didn't cause a commit of the response, the final content
@@ -242,6 +243,7 @@ public class OutputBuffer extends Writer {
         if (coyoteResponse.getStatus() == HttpServletResponse.SC_SWITCHING_PROTOCOLS) {
             doFlush(true);
         } else {
+            //这里不需要flush，后面通过ActionCode.CLOSE刷新
             doFlush(false);
         }
         closed = true;
@@ -251,7 +253,7 @@ public class OutputBuffer extends Writer {
         // confuse AJP (bug 50189) so close the input buffer to prevent them.
         Request req = (Request) coyoteResponse.getRequest().getNote(CoyoteAdapter.ADAPTER_NOTES);
         req.inputBuffer.close();
-
+        //的ActionCode.CLOSE 会调用Http11OutputBuffer的end方法()
         coyoteResponse.action(ActionCode.CLOSE, null);
     }
 
@@ -282,13 +284,18 @@ public class OutputBuffer extends Writer {
         try {
             doFlush = true;
             if (initial) {
+                //initial默认是true，会检查是否需要准备响应头，如果全面写数据小，没有导致bytebuffer刷新时，
+                //是从这里开始准备响应头的，如果已经准备过，这里会返回。
                 coyoteResponse.sendHeaders();
                 initial = false;
             }
+            //通过write写的数据在char buffer里，需要把转换到byte buffer
             if (cb.remaining() > 0) {
                 flushCharBuffer();
             }
+            //通过outputStream写的字节，则把byteBuffer里的数据写到socket的writeBuffer
             if (bb.remaining() > 0) {
+                //body数据的关键在flushByteBuffer，这里会根据是否指定里content-length 来决定body的编码格式，
                 flushByteBuffer();
             }
         } finally {

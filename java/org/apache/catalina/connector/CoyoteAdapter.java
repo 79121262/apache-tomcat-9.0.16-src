@@ -373,7 +373,7 @@ public class CoyoteAdapter implements Adapter {
                 if (!request.isAsyncCompleting() && throwable != null) {
                     request.getAsyncContextInternal().setErrorState(throwable, true);
                 }
-            } else {
+            } else {//同步请求处理完成后 处理response 的结束写入
                 request.finishRequest();
                 response.finishResponse();
             }

@@ -86,7 +86,6 @@ public final class Response {
     /**
      * Associated output buffer.
      * 在创建http11Processor的时候创建
-     *
      */
     OutputBuffer outputBuffer;
 

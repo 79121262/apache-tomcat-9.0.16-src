@@ -105,12 +105,12 @@ public class ChunkedOutputFilter implements OutputFilter {
         }
 
         int pos = calculateChunkHeader(result);
-
+        //写chunk的开始标记：读chunk 的长度 16进制 比如10\r\n
         chunkHeader.position(pos + 1).limit(chunkHeader.position() + 9 - pos);
         buffer.doWrite(chunkHeader);
 
         buffer.doWrite(chunk);
-
+        //一个chunk的结束标记:\r\n
         chunkHeader.position(8).limit(10);
         buffer.doWrite(chunkHeader);
 
@@ -158,6 +158,7 @@ public class ChunkedOutputFilter implements OutputFilter {
     }
 
 
+    //chunk的结束部分写到socket 的writeBuffer
     @Override
     public void end() throws IOException {
 
@@ -196,6 +197,7 @@ public class ChunkedOutputFilter implements OutputFilter {
             buffer.doWrite(crlfChunk);
             crlfChunk.position(0).limit(crlfChunk.capacity());
         }
+        ////最后在这里把writeBuffer数据写到网络层,buffer 为
         buffer.end();
     }
 
