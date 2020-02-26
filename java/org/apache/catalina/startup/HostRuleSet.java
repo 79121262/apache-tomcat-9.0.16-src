@@ -116,6 +116,7 @@ public class HostRuleSet implements RuleSet {
                                  null, // MUST be specified in the element
                                  "className");
         digester.addSetProperties(prefix + "Host/Valve");
+        //将Valve 通过addValve 添加到 Host 实例中
         digester.addSetNext(prefix + "Host/Valve",
                             "addValve",
                             "org.apache.catalina.Valve");

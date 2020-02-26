@@ -85,6 +85,7 @@ public class MapperListener extends LifecycleMBeanBase
      */
     public MapperListener(Service service) {
         this.service = service;
+        //和Service 公用一个Mapper
         this.mapper = service.getMapper();
     }
 
@@ -302,6 +303,9 @@ public class MapperListener extends LifecycleMBeanBase
         String[] aliases = host.findAliases();
         mapper.addHost(host.getName(), aliases, host);
 
+        /**
+         * (Context) container 注册到mapper
+         */
         for (Container container : host.findChildren()) {
             if (container.getState().isAvailable()) {
                 registerContext((Context) container);
@@ -462,6 +466,7 @@ public class MapperListener extends LifecycleMBeanBase
             List<WrapperMappingInfo> wrappers) {
         String wrapperName = wrapper.getName();
         boolean resourceOnly = context.isResourceOnlyServlet(wrapperName);
+        //web.xml 中 servlet 的匹配路径
         String[] mappings = wrapper.findMappings();
         for (String mapping : mappings) {
             boolean jspWildCard = (wrapperName.equals("jsp")

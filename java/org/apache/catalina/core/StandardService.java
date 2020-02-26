@@ -95,6 +95,8 @@ public class StandardService extends LifecycleMBeanBase implements Service {
 
     /**
      * Mapper.
+     *
+     * 存放 servlet 的集合
      */
     protected final Mapper mapper = new Mapper();
 
@@ -430,6 +432,9 @@ public class StandardService extends LifecycleMBeanBase implements Service {
             }
         }
 
+        /**
+         * 添加 severlet 对应的 mapper Servlet
+         */
         mapperListener.start();
 
         //启动连接器 Connector

@@ -222,6 +222,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
 
     /**
      * The Pipeline object with which this Container is associated.
+     * 每一层的容器 都有一个 Pipeline
      */
     protected final Pipeline pipeline = new StandardPipeline(this);
 
