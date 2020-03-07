@@ -734,6 +734,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             byteBuffer.position(byteBuffer.limit());
         }
         byteBuffer.limit(byteBuffer.capacity());
+        //调用的是NioSocketWrapper的read方法
         int nRead = wrapper.read(block, byteBuffer);
         byteBuffer.limit(byteBuffer.position()).reset();
         if (nRead > 0) {
@@ -762,8 +763,13 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         byte chr = 0;
         while (headerParsePos == HeaderParsePosition.HEADER_START) {
 
+            /**
+             * position = limit 即已经读完了，需要执行fill重新填充，参数是false，
+             *是非阻塞读，那什么时候阻塞读呢，是我们在调用getInputStream()时，就是阻塞的
+             */
             // Read new bytes if needed
             if (byteBuffer.position() >= byteBuffer.limit()) {
+                //读取buffer
                 if (!fill(false)) {// parse header
                     headerParsePos = HeaderParsePosition.HEADER_START;
                     return HeaderParseStatus.NEED_MORE_DATA;
@@ -1066,6 +1072,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             if (byteBuffer.position() >= byteBuffer.limit()) {
                 // The application is reading the HTTP request body which is
                 // always a blocking operation.
+                //阻塞读取body,利用辅助的selecter.循环读取
                 if (!fill(true))
                     return -1;
             }

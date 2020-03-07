@@ -156,7 +156,7 @@ public class NioSelectorPool {
 
                     //这里需要做一次copy，  IOUtil.write 先到堆外，再到写缓冲区
                     //因为IOUtil.write会进行系统调用？？？？？
-                    //到了堆外内存后,就可以写到os内核缓冲区（网卡缓冲区）。
+                    //到了堆外内存后,就可以copy写到os内核缓冲区,然后到网卡
                     cnt = socket.write(buf); //write the data
                     if (cnt == -1) throw new EOFException();
 

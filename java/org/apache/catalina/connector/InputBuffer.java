@@ -346,7 +346,7 @@ public class InputBuffer extends Reader
         if (closed) {
             throw new IOException(sm.getString("inputBuffer.streamClosed"));
         }
-
+        //从应用缓冲，或系统os读取 数据
         if (checkByteBufferEof()) {
             return -1;
         }

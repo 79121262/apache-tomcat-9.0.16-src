@@ -324,10 +324,13 @@ public class Http11Processor extends AbstractProcessor {
                     keptAlive = true;
                     // Set this every time in case limit has been changed via JMX
                     request.getMimeHeaders().setLimit(protocol.getMaxHeaderCount());
-                    //header 的解析
+                    //header 的解析，这里为非阻塞读取，不会使用辅助的selectors
+                    //而是非阻塞的调用SocketChannel.read 方法,如果读取的Header不完整那么，将会把channel注册到poller.seleter上
+                    //异步获取数据
                     if (!inputBuffer.parseHeaders()) {
                         // We've read part of the request, don't recycle it
                         // instead associate it with the socket
+                        //header 没有读取完整，重新注册到 poller selecter 中，异步处理
                         openSocket = true;
                         readComplete = false;
                         break;
@@ -513,6 +516,7 @@ public class Http11Processor extends AbstractProcessor {
                     if (readComplete) {
                         return SocketState.OPEN;
                     } else {
+                        //没有处理完
                         return SocketState.LONG;
                     }
                 } else {
